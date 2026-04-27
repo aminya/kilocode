@@ -90,7 +90,7 @@ The command resolves the package, reads its `package.json` for plugin entrypoint
 
 ### How plugins are installed
 
-- **npm plugins** are installed automatically at startup using Bun. Packages and their dependencies are cached in Kilo's XDG cache directory (`~/.cache/kilo/` on Linux, `~/Library/Caches/kilo/` on macOS, `%LOCALAPPDATA%\kilo\` on Windows).
+- **npm plugins** are installed automatically at startup using Bun. Packages and their dependencies are cached under `packages/` in the current CLI XDG cache directory (`~/.cache/opencode/packages/` by default, or `$XDG_CACHE_HOME/opencode/packages/` when `XDG_CACHE_HOME` is set).
 - **Local plugins** are loaded directly from the plugin directory. If your plugin imports external packages, add a `package.json` to your config directory (see [Dependencies](#dependencies)) — Kilo runs `bun install` on startup so imports resolve.
 
 ### Load order
@@ -470,8 +470,8 @@ TUI plugins live in a separate module namespace (`@kilocode/plugin/tui`) and hav
   Named function exports are also accepted for backwards compatibility but should be considered legacy.
 
 - **Local plugin can't find an npm import** — add a `package.json` in the config directory so `bun install` picks up the dependency (see [Dependencies](#dependencies)).
-- **Plugin loads in dev but not in CI** — verify `KILO_PURE` is not set, and that npm-installed plugins are cached (Kilo's XDG cache directory — `~/.cache/kilo/` on Linux, `~/Library/Caches/kilo/` on macOS, `%LOCALAPPDATA%\kilo\` on Windows). Run with `--log-level DEBUG` to see install output.
-- **Reset the plugin cache** — delete the `node_modules/` under Kilo's cache directory (or the `node_modules` cache under your config directory) and restart Kilo.
+- **Plugin loads in dev but not in CI** — verify `KILO_PURE` is not set, and that npm-installed plugins are cached under `packages/` in the current CLI XDG cache directory (`~/.cache/opencode/packages/` by default, or `$XDG_CACHE_HOME/opencode/packages/` when `XDG_CACHE_HOME` is set). Run with `--log-level DEBUG` to see install output.
+- **Reset the plugin cache** — delete the plugin package folder under the CLI's `packages/` cache directory (or the `node_modules` cache under your config directory) and restart Kilo.
 
 ---
 
