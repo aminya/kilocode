@@ -9,8 +9,11 @@ import { definitions, flatten, nerfDarts, shorthands } from "@npmcli/config/lib/
 import { Effect, Schema, Context, Layer, Option, FileSystem } from "effect"
 import { NodeFileSystem } from "@effect/platform-node"
 import { AppFileSystem } from "@opencode-ai/shared/filesystem"
-import { Global } from "@opencode-ai/shared/global"
+import { Global as Shared } from "@opencode-ai/shared/global" // kilocode_change
 import { EffectFlock } from "@opencode-ai/shared/util/effect-flock"
+// kilocode_change start - keep npm-managed package caches in Kilo's XDG paths.
+import { Global as Kilo } from "../global"
+// kilocode_change end
 
 import { makeRuntime } from "../effect/runtime"
 
@@ -103,7 +106,7 @@ export const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
     const afs = yield* AppFileSystem.Service
-    const global = yield* Global.Service
+    const global = yield* Shared.Service // kilocode_change
     const fs = yield* FileSystem.FileSystem
     const flock = yield* EffectFlock.Service
     const directory = (pkg: string) => path.join(global.cache, "packages", sanitize(pkg))
@@ -299,10 +302,27 @@ export const layer = Layer.effect(
   }),
 )
 
+// kilocode_change start - the shared global layer is still opencode-branded upstream.
+const kilo = Layer.succeed(
+  Shared.Service,
+  Shared.Service.of({
+    home: Kilo.Path.home,
+    data: Kilo.Path.data,
+    cache: Kilo.Path.cache,
+    config: Kilo.Path.config,
+    state: Kilo.Path.state,
+    bin: Kilo.Path.bin,
+    log: Kilo.Path.log,
+  }),
+)
+// kilocode_change end
+
 export const defaultLayer = layer.pipe(
   Layer.provide(EffectFlock.layer),
   Layer.provide(AppFileSystem.layer),
-  Layer.provide(Global.layer),
+  // kilocode_change start
+  Layer.provide(kilo),
+  // kilocode_change end
   Layer.provide(NodeFileSystem.layer),
 )
 

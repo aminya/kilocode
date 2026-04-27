@@ -3,6 +3,9 @@ import path from "path"
 import { describe, expect, test } from "bun:test"
 import { Npm } from "../src/npm"
 import { tmpdir } from "./fixture/fixture"
+// kilocode_change start
+import { Global } from "../src/global"
+// kilocode_change end
 
 const win = process.platform === "win32"
 const writePackage = (dir: string, pkg: Record<string, unknown>) =>
@@ -51,5 +54,19 @@ describe("Npm.install", () => {
 
     await expect(fs.stat(path.join(tmp.path, "node_modules", "prod-pkg"))).resolves.toBeDefined()
     await expect(fs.stat(path.join(tmp.path, "node_modules", "dev-pkg"))).rejects.toThrow()
+  }) // kilocode_change
+}) // kilocode_change
+
+// kilocode_change start - Kilo should not inherit opencode-branded npm cache paths.
+describe("Npm.add", () => {
+  test("uses Kilo cache path", async () => {
+    const dir = path.join(Global.Path.cache, "packages", "acme", "node_modules", ".bin")
+    await fs.mkdir(dir, { recursive: true })
+    await Bun.write(path.join(dir, "acme"), "#!/usr/bin/env node\n")
+
+    const result = await Npm.which("acme")
+
+    expect(result).toBe(path.join(dir, "acme"))
   })
 })
+// kilocode_change end
