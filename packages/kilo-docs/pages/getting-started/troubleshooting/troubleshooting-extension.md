@@ -47,6 +47,45 @@ Once you have the Developer Tools console open:
 3. **Check for errors**: Look at the Console tab for error messages (usually shown in red). If you suspect connection issues, also check the **Network** tab
 4. **Copy the logs**: Right-click in the console and select "Save as..." or copy the relevant error messages
 
+## SQLite database is malformed
+
+If every prompt fails with `SQLiteError: database disk image is malformed`, Kilo Code's local SQLite database may be corrupted. This database stores local Kilo state such as sessions and history.
+
+### Find the database
+
+The database location depends on where Kilo Code is running:
+
+| Environment | Database path |
+|---|---|
+| Windows | `%LOCALAPPDATA%\kilo\kilo.db` |
+| macOS | `~/Library/Application Support/kilo/kilo.db` |
+| Linux | `~/.local/share/kilo/kilo.db` |
+| VS Code Remote SSH | `~/.local/share/kilo/kilo.db` on the remote machine |
+
+{% callout type="warning" %}
+When using VS Code Remote SSH, check the remote Linux machine, not your local Windows or macOS computer.
+{% /callout %}
+
+### Reset the database
+
+Close VS Code or stop the Kilo backend first. On Linux or Remote SSH, run:
+
+```bash
+pkill -f "kilo serve"
+mkdir -p ~/.local/share/kilo
+mv ~/.local/share/kilo/kilo.db ~/.local/share/kilo/kilo.db.bak
+mv ~/.local/share/kilo/kilo.db-wal ~/.local/share/kilo/kilo.db-wal.bak 2>/dev/null
+mv ~/.local/share/kilo/kilo.db-shm ~/.local/share/kilo/kilo.db-shm.bak 2>/dev/null
+```
+
+Then reload VS Code or reconnect Remote SSH. Kilo Code recreates the database the next time it starts.
+
+On Windows or macOS, rename the database file and any `kilo.db-wal` or `kilo.db-shm` files in the same folder, then restart the IDE.
+
+{% callout type="warning" %}
+Renaming this database resets local Kilo Code sessions and history for that machine. Keep the `.bak` files if you need to share them with support or attempt recovery later.
+{% /callout %}
+
 ## Contact Support
 
 If you're unable to resolve the issue, please inspect the console logs, remove any secrets, and send the logs to **[hi@kilocode.ai](mailto:hi@kilocode.ai)** along with the following:
